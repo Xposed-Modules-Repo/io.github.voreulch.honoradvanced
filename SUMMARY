@@ -1,0 +1,4 @@
+MagicOS11高级设置 by VoreulCH@GitHub
+All-in-one LSPosed module for Honor MagicOS 11: restores the liquid-glass effect gutted by the system update (system shade / lock screen / gallery, independently switchable) and cleans up the package installer (skip the online security check & preinstall fingerprint prompt, block networking, allow downgrades), all toggleable in-app.
+
+Source: https://github.com/VoreulCH/HonorAdvancedSettings
