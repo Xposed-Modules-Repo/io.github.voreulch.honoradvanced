@@ -17,22 +17,44 @@
 > This repository is the LSPosed distribution mirror; source code, issues and
 > discussions live in the source repository above.
 
+## 隐私 / Privacy
+
+本模块完全运行于本机，**不获取、不上传任何隐私内容**：
+
+- 不读取通讯录、短信、通话记录、位置、相册、麦克风、摄像头、剪贴板
+- 不收集设备标识（IMEI / 序列号 / Android ID / 广告 ID），不碰任何账号信息
+- 没有埋点统计、没有第三方 SDK、不做用户画像
+- 开关与参数只保存在本机应用私有目录，卸载即删除
+- 唯一声明的网络权限用于「检查更新」（**只有你点它**的时候才访问 GitHub 公开接口）
+- 「导出诊断报告」只在用户点击时生成一个文本文件，存在本机「下载」目录，**发不发、发给谁完全由用户决定**
+
+This module runs entirely on-device and **collects/uploads no private data**:
+no contacts, SMS, call logs, location, photos, microphone, camera or clipboard;
+no device identifiers or account info; no analytics, no third-party SDKs.
+Preferences live in the app's private directory and are removed on uninstall.
+The only network permission is used for the manual "check for updates" action.
+
 面向荣耀 MagicOS 11 的一站式 LSPosed 模块，整合了前作 **荣耀液态玻璃恢复（HonorLiquidGlassRestore）** 与 **荣耀安装器净化（HonorInstallerPurify）** 的全部功能，并重写了模块界面：
 
-- **液态玻璃**：还原系统 OTA 更新阉割的控制中心 / 通知中心液态玻璃，覆盖系统、锁屏、相册三条线，每线独立开关；定稿配方烤入，装上即得调校后的观感；另有 DIY 模式提供 14 个 0~100 滑条实时调观感。
+- **液态玻璃**：还原系统 OTA 更新阉割的控制中心 / 通知中心液态玻璃，覆盖**系统 / 锁屏 / 通知横幅 / 桌面 / 相册**五条线，每线独立开关；配方按界面分组、共 **75 项精确参数**（100% = 不改动，0~200% 可调），从「通知卡底色」到「锁屏时钟的玻璃腐蚀强度」都能单独拖。
 - **安装器净化**：跳过安装器联网安全检测与指纹预装提示、禁止联网、隐藏推广卡片，支持降级安装；**钩子点自适应解析**（DexKit 字符串锚 + 参数签名扫描），荣耀安装器 OTA 混淆重排后大概率无需更新模块。
-- **高温限制解除**（需 ROOT）：高温时不弹「建议暂停使用」提示、不限制屏幕亮度、系统热状态按正常上报、压制 PowerGenie 温控（游戏限帧 / 后台清理）、高温自动关机不再触发；默认关闭、开启前二次确认，内核调度与降频不受影响。
+- **安全组件**：**允许截屏 / 录屏**、**屏蔽云控下发**（单一总开关，屏蔽性能/温控三份下发与三份 legacy 配置）、**屏蔽反诈采集上报**（securityserver + awareness 双作用域）、**云控配置清理**（备份 / 删除 / 恢复，需 ROOT）。
+- **高温限制解除**（需 ROOT）：高温时不弹「建议暂停使用」提示、不限制屏幕亮度、系统热状态按正常上报、**压制 PowerGenie 的全部性能限制**（游戏锁帧 / 降画质 / 锁亮度 / 帧率检查与上报，共 10 个执行点，用 DexKit 字符串锚点定位、抗 OTA 混淆）、高温自动关机不再触发；默认关闭、开启前二次确认，内核调度与降频不受影响。
 - **应用内开关**：所有功能在 miuix 风格界面以开关呈现，配置经 ContentProvider 桥跨进程同步，安装器线改开关无需重启，玻璃线一键重启作用域。
 
 An all-in-one LSPosed module for Honor MagicOS 11 that merges the previous
 **HonorLiquidGlassRestore** and **HonorInstallerPurify** modules: restores the
 liquid-glass effect gutted by the system update (system shade / lock screen /
-gallery, each independently switchable), cleans up the package installer
+heads-up banner / launcher / gallery, each independently switchable, with 75
+fine-grained parameters grouped per surface), cleans up the package installer
 (skip the online security check & preinstall fingerprint prompt, block
 networking, hide promo cards, allow downgrades), and — with root — lifts the
 system's high-temperature restrictions (no popup, no brightness cap, thermal
 status reported normal, PowerGenie thermal policies suppressed) — all
 toggleable in-app, with cross-process config sync via a ContentProvider bridge.
+Security tools cover screen-capture allowance, a single-switch cloud-policy
+block, anti-fraud data blocking across securityserver/awareness, and cloud-config
+cleanup (backup/delete/restore, root).
 
 ## 功能一览 / Features
 
@@ -43,19 +65,22 @@ toggleable in-app, with cross-process config sync via a ContentProvider bridge.
 | 系统液态玻璃 / System shade | 还原 LIQUID 材质位、强制 HIGH 机型渲染路径、材质类型改判（大方法 Hook，AOT 内联免疫）；面板遮罩 / 模糊半径 / 光泽 / 折射 / 色散 / 边光按定稿配方烤入 Restores the LIQUID material bit, HIGH render tier and material type (big-method hooks, inline-proof); veil / blur / gloss / refraction / dispersion / rim light baked in pre-calibrated |
 | 锁屏液态玻璃 / Lock screen | 锁屏通知卡片与快捷按钮获得与通知栏一致的液态玻璃：卡面亮度、纱深浅、边光、合成模糊半径逐项对齐；静态壁纸下从锐利壁纸经原厂 `ViewBlur.blurBitmap` 管线合成位图 Lock-screen cards & buttons match the shade look item by item; a blur bitmap is synthesized from sharp wallpapers through the stock pipeline |
 | 相册液态玻璃 / Gallery | 相册照片页工具栏的液态玻璃效果 Liquid glass on the gallery photo-page toolbar |
-| 分线开关 / Per-line switches | 三条线独立开关；系统级底层钩子（材质判定 / HIGH 强制渲染）归总开关管辖，避免关闭分开关连带破坏依赖底层的玻璃效果 Per-line switches; system-level hooks live under the master switch so turning a sub-switch off never breaks the shared base |
-| DIY 模式 / DIY mode | 14 个 0~100 滑条（遮罩 / 模糊 / 圆角 / 饱和度 / 边缘光 / 折射 / 边框 / 厚度 / 色散 / 锁屏参数等），实时覆盖烤入配方；默认关闭，滑条默认值=旧极致观感 14 sliders (mask / blur / radius / saturation / edge / refraction / rim / thickness / dispersion / keyguard params) overriding the baked-in look in real time; opt-in, defaults match the old extreme preset |
+| 分线开关 / Per-line switches | 五条线独立开关；系统级底层钩子（材质判定 / HIGH 强制渲染）归总开关管辖，避免关闭分开关连带破坏依赖底层的玻璃效果 Per-line switches; system-level hooks live under the master switch so turning a sub-switch off never breaks the shared base |
+| 桌面液态玻璃 / Launcher | 桌面卡片与文件夹的模糊 / 饱和度 / 亮度，独立开关 Card & folder blur / saturation / brightness, own switch |
+| 精细调节 / Fine tuning | **75 项参数，按界面分组**：系统 45（含横幅 5；通知卡 / 大按钮 / 小按钮 / 滑块 / 光学 / 模糊 / 高光 / 多层遮罩与渐变）、锁屏 25（通知卡 / 时钟腐蚀 / 按钮·图标·文字各 5 / 小组件 / 壁纸指纹）、桌面 3、总开关 2。100% = 不改动 75 parameters grouped per surface: 45 system (incl. 5 banner), 25 lock screen, 3 launcher, 2 master switches; 100% = untouched |
+| 诊断报告 / Diagnostics | 关于页一键导出：设备信息 / su 路径探测 / root 方案痕迹 / 属性与开关快照 / 模块操作日志 / LSPosed 日志尾部，存到「下载」目录 One-tap diagnostic report (device, su probe, root traces, prefs, op log, LSPosed tail) saved to Downloads |
+| 强制液态 / Force liquid | 某些界面系统会自己判定成磨砂，这个开关强制它们走液态折射 Forces surfaces the system renders as frosted onto the liquid path |
 
 ### 安装器净化 / Installer purify
 
 | 功能 Feature | 说明 Description |
 | --- | --- |
+| 安全检测净化 / Security-check purify | 四层净化：检测请求全拦、不读取本地高风险依据、检测结果直接改写为安全、安装页只保留信息卡 / 取消 / 安装；四种发起方式一次点完 Blocks detect requests, skips local risk sources, rewrites the result to safe, and keeps only info card / cancel / install; one tap for all four launch paths |
 | 跳过安全检测 / Skip security check | 安装前不再上传 APK 做联网云检测与指纹预装提示 No more pre-install cloud scan or fingerprint prompt |
 | 禁止联网 / No networking | 阻断安装器的推广与上报请求 Blocks the installer's promo/telemetry requests |
 | 安装包信息卡 / Info card | 展示版本 / 大小 / SDK / 架构信息卡；可关闭（关闭时同时隐藏安全模式提醒） Version / size / SDK / ABI info card, toggleable (off also hides the safe-mode reminder) |
 | 允许降级安装 / Downgrade | 允许安装低于当前版本号的 APK Allows installing lower-version APKs |
 | 安装提速 / Faster staging | 跳过「准备安装」阶段的腾讯免检与分流网络等待（禁网后不再干等超时） Skips the Tencent no-detect + diversion network waits during staging |
-| 风险安装弹窗 / Risk tip dialog | 高风险应用安装前的「风险提示」自动继续，无需手动点「继续安装」 Auto-continues the risk-tip dialog |
 | 匿名来源弹窗 / Anonymous source | 无来源包名（PC/文件管理器传入）时静默放行、零弹窗；任何失败都自动回退为可见可点的原厂弹窗，绝不吞触摸 Manual-free anonymous-source handling with a visible-dialog fallback on any failure |
 | 自适应钩子 / Adaptive hooks | 类经 DexKit 字符串锚定位、方法经参数签名扫描定位（锚=跨版本稳定的实体完整名）；放行结果双配方结构探测——安装器 OTA 混淆重排后大概率免更新 Classes located via DexKit string anchors, methods via parameter-signature scanning (anchored on stable entity full names); pass-result delivery tries two known recipes — installer OTA obfuscation reshuffles usually need no module update |
 
@@ -66,12 +91,21 @@ toggleable in-app, with cross-process config sync via a ContentProvider bridge.
 | 屏蔽通知回避 / No audio ducking | 通知铃声响起时不再压低正在播放的音乐，两者同时发声；闹钟不受影响（默认关闭） Notification sounds stop ducking your music; alarms unaffected (opt-in) |
 | 屏蔽高温限制（ROOT）/ Thermal bypass | 高温时不弹「建议暂停使用」、不限屏幕亮度、系统热状态按正常上报、压制 PowerGenie 温控（游戏限帧 / 后台清理）、高温自动关机不再触发；开关格内实时显示系统层状态与属性值。**需 ROOT**（未授权时仅弹窗屏蔽生效），默认关闭、开启前二次确认；**内核调度与降频不受本开关影响** Disables the system's high-temperature restrictions with one switch (popup, brightness cap, thermal status reporting, PowerGenie policies, emergency shutdown); requires root, opt-in with a confirmation dialog; kernel-level throttling is untouched |
 
+### 安全组件 / Security
+
+| 功能 Feature | 说明 Description |
+| --- | --- |
+| 允许截屏/录屏 / Allow screenshots | 清除普通应用的 FLAG_SECURE；系统隐私窗口（通知栏 / 状态栏等）保留保护 Allow screenshots for normal apps; system privacy windows keep FLAG_SECURE |
+| 屏蔽云控下发 / Block cloud policies | 单一总开关，屏蔽性能/温控三份云控下发与三份 legacy 配置 A single switch blocks the three cloud-policy pushes and three legacy config files |
+| 屏蔽反诈采集 / Block anti-fraud | 覆盖反诈服务（securityserver）与感知服务（awareness）两个作用域，阻断反诈数据采集与上报 Blocks anti-fraud collection/reporting in both securityserver and awareness |
+| 云控配置清理 / Cloud config cleanup | 备份 / 删除 / 恢复 `/data/cota/para` 下的 power / iaware 配置残留（需 ROOT） Backup / delete / restore power/iaware cloud-config leftovers (root) |
+
 ### 作用域自检与诊断 / Scope self-check & diagnostics
 
 | 功能 Feature | 说明 Description |
 | --- | --- |
 | 作用域自检 / Scope self-check | 每个被 hook 的进程启动时向模块上报一次（走模块自己的 ContentProvider，不需要 ROOT），首页顶部实时显示模块是否生效、已加载哪些作用域；各开关下方**只在未生效时**点名具体作用域（如「作用域状态：系统界面作用域未生效（勾选并重启作用域生效）」），生效后自动隐藏。LSPosed 与 Vector 通用，也适用于任何分叉版本 |
-| 重启作用域 / Restart scopes | 可勾选多个一次重启：系统界面 / 相册 / 安装器 / 桌面 / 桌面模式 / 温控服务（需 ROOT） |
+| 重启作用域 / Restart scopes | 可勾选多个一次重启：系统界面 / 相册 / 安装器 / 桌面 / 桌面模式 / 温控服务 / 反诈服务（securityserver）/ 感知服务（awareness）；温控与云控清理需 ROOT Restart selected scopes: SystemUI / gallery / installer / launcher / desktop mode / thermal service / securityserver / awareness; thermal and cloud cleanup need root |
 | 诊断日志 / Verbose diagnostics | 关于页开关，开启后向 LSPosed 模块日志输出环境快照（模块/框架/宿主版本、进程身份、设备）、开关快照、每个钩子的挂载结果、运行事件与异常堆栈；重复日志压缩为 `*N`。开启即时生效，日常建议关闭 |
 | 检查更新 / Update check | 点击查询 GitHub 最新 release（超时或断网会说明具体原因），发现新版本直接打开 APK 下载页 |
 
@@ -80,8 +114,8 @@ toggleable in-app, with cross-process config sync via a ContentProvider bridge.
 
 * 已 root 的荣耀 MagicOS 11（Android 17）设备：Magisk / KernelSU / ReSukkiSU + LSPosed（或 Vector 等第三方管理器）；模块要求 Android 13+（minSdk 33）。
   A rooted Honor MagicOS 11 (Android 17) device: Magisk / KernelSU / ReSukkiSU + LSPosed (or a third-party manager such as Vector); the module requires Android 13+ (minSdk 33).
-* 作用域：**系统界面**、**荣耀桌面**（`com.hihonor.android.launcher` / `com.hihonor.desktop.systemui`）、**相册**、**安装器**、**系统框架**（降级安装）；**高温限制解除另需 `com.hihonor.powergenie` 与 `com.hihonor.iaware`**（安装包内已声明全部推荐作用域，管理器通常可一键应用）。
-  Scopes: SystemUI, the Honor launcher, the gallery and the package installer (recommended scope declared in the APK manifest).
+* 作用域：**系统界面**、**荣耀桌面**（`com.hihonor.android.launcher` / `com.hihonor.desktop.systemui`）、**相册**、**安装器**、**系统框架**（降级安装）；**高温限制解除另需 `com.hihonor.powergenie` 与 `com.hihonor.iaware`**；**安全组件另需 `com.hihonor.securityserver` 与 `com.hihonor.awareness`**（安装包内已声明全部推荐作用域，管理器通常可一键应用）。
+  Scopes: SystemUI, the Honor launcher, the gallery, the package installer and the system framework; thermal bypass additionally needs powergenie/iaware, and the security tools need securityserver/awareness (all declared in the APK manifest).
 * 仅在 MagicOS 11 上实测；其他版本类名可能变化，Hook 未命中时功能静默失效（不影响系统稳定）。
   Tested on MagicOS 11 only; on other versions the hooks may silently miss (nothing breaks).
 
@@ -129,10 +163,10 @@ gradle assembleRelease
 │       ├── AndroidManifest.xml            # xposedmodule 元数据与作用域
 │       ├── java/io/github/voreulch/honoradvanced/
 │       │   ├── MainHook.java              # 入口分发 / entry dispatch
-│       │   ├── GlassHook.java             # 液态玻璃钩子（含 DIY 滑条参数）/ liquid-glass hooks
+│       │   ├── GlassHook.java             # 液态玻璃钩子（75 项精细调节）/ liquid-glass hooks
 │       │   ├── InstallerHook.java         # 安装器净化钩子（自适应解析）/ adaptive installer hooks
 │       │   ├── DexKitHelper.java          # DexKit 运行时 dex 搜索封装
-│       │   ├── Cfg.java                   # 配置快照与门控（开关 + DIY 滑条值）
+│       │   ├── Cfg.java                   # 配置快照与门控（开关 + 精细调节值）
 │       │   ├── CfgProvider.java           # 跨进程配置桥 / cross-process config bridge
 │       │   └── ...SettingsActivity.kt 等   # 见 kotlin/ 目录（miuix UI）
 │       ├── kotlin/io/github/voreulch/honoradvanced/
@@ -149,15 +183,30 @@ gradle assembleRelease
 
 ## 往期更新摘要 / Recent highlights
 
+- **3.2.84（214，2026-11-03）**：**安装器净化四层**——检测请求全拦、不读本地高风险依据、检测结果直接改写为安全、安装页只保留信息卡 / 取消 / 安装，MT / 文件管理器 / 覆盖升级 / 匿名来源一次点完；**云控屏蔽单开关**（三份下发 + 三份 legacy 配置）；**云控配置清理**（备份 / 删除 / 恢复，需 ROOT）；液态玻璃五条线 + 75 项精细调节；温控屏蔽、允许截屏录屏、云控配置清理、作用域自检与诊断日志沿用 3.2.51 既有能力，本版无破坏性变更；本版实际改动集中在安装器净化四层与云控单开关。
+- **3.2.51（181，2026-11-02）**：新增安全组件三项（允许截屏/录屏、屏蔽云控下发、屏蔽反诈采集上报）、云端配置读取拦截、云控配置清理入口与感知服务作用域；修复开机玻璃、推荐应用按钮、云控/清理/作用域提示、信息点触控、延迟任务清理等问题。
+- **3.2.29（159，2026-11-02）**：修复开机后液态玻璃不生效；修复安装器「推荐应用」按钮无法屏蔽。
+- **3.2.26（156，2026-11-02）**：安装器广告入口全拦（含「用过该应用的还喜欢」）；修复「允许降级安装」系统层校验不生效；滑条改为 1% 精细调节。
+- **3.2.5（135，2026-11-01）**：新增安全组件（允许截屏/录屏、屏蔽云控下发、屏蔽反诈采集上报）；修复反诈/截图屏蔽从未生效、云控 12 个读取方法漏拦、4 个参数重复计算；新增「恢复官方原始参数」与参数烧录。
 - **2.1.2（58）**：适配荣耀安装器 **14.0.39.301** 新构建；修复部分渠道（如 MT 管理器）安装时匿名来源弹窗消失后「安装」按钮点不动的问题；修复安装全新应用被误标「降级安装」；移除历史调试代码、压缩冗余。
 - **2.0.2（48）**：新增「杂项」页与**屏蔽通知回避**（通知音响起时不再压低正在播放的音乐，闹钟不受影响）；安装器净化适配 **14.0.32.303 / 14.0.22.327**（累计覆盖 38.301 · 32.303 · 22.326 · 22.327 四版，自适应零开关）；隐藏安装页「未发现风险」残留卡片（与渲染同帧，无闪现）；液态玻璃通知卡片 / 工具栏按钮参数回迁 1.4.22 认可配方。
+- **3.1.3（128）**：**温控大更新** —— 反编译 PowerGenie 后接管了 10 个真正的性能限制执行点（帧率下发/上报/检查、画质降级、亮度禁用/退出），用 DexKit 字符串锚点定位以抗 OTA 混淆；修复「温控开关关不掉」（su 超时 8s→30s + 7 路径兜底 + 强制杀）；新增诊断报告一键导出（AppLog + 6 类环境快照）；边缘高光改用真开关并语义反转（默认全开，双向联动，老数据自动迁移）；新增多层遮罩浓度 / 动态卡渐变 / 锁屏控制中心展开态；参数 71→75。
+- **3.0.1（119）**：**液态玻璃大更新** —— 从「一套配方」改成 **71 项按界面分组的精细调节**（系统 42 / 锁屏 25 / 横幅 5 / 桌面 3 + 强制液态开关）；打通锁屏四条以前调不了的链路（时钟腐蚀表 / 按钮·图标·文字的通用参数包 / 小组件 / 壁纸与指纹）；新增桌面液态玻璃（独立开关）；三级菜单重构；**DIY 模式整体移除**（被精细调节完全覆盖）；修 4 个真 bug（桌面光学被绝对值覆盖、参数重复应用叠乘、强制液态开关状态造假、高温旁路缓存初值方向写反）。
 - **2.0.0（46）**：大版本重构 —— DIY 模式（14 个 0~100 滑条实时调观感）、界面 miuix 化、安装器净化自适应钩子集（兼容模式开关取消）、安装提速。
 - 2.0.3 ~ 2.0.9 为内部迭代版本，未单独发布，改动已全部并入 2.1.2。
 
 ## 版本历史 / Changelog
+* **3.2.84**（2026-11-03）：安装器净化四层——检测请求全拦、不读本地高风险依据、检测结果直接改写为安全、安装页只保留信息卡 / 取消 / 安装，MT / 文件管理器 / 覆盖升级 / 匿名来源一次点完；云控屏蔽改为单一总开关（三份下发 + 三份 legacy 配置）；新增云控配置清理（备份 / 删除 / 恢复，需 ROOT）；液态玻璃五条线 + 75 项精细调节；温控屏蔽、允许截屏录屏、云控配置清理、作用域自检与诊断日志沿用 3.2.51 既有能力，本版无破坏性变更；本版实际改动集中在安装器净化四层与云控单开关。
+* **3.2.51**（2026-11-02）：修复开机后液态玻璃不生效；修复安装器「推荐应用」按钮无法屏蔽；修复性能/温控云端策略屏蔽从未生效；修复「清理云端配置残留」提示与实际执行结果不符；修复作用域状态误报「已生效」；修复「!」提示按钮点击区域过小；修复退出设置页后延迟任务未清理。新增感知服务（awareness）反诈数据拦截并纳入作用域；新增云端配置读取拦截；新增云控配置清理入口。清理云端配置残留从开关改为按钮；重启作用域支持感知服务。
+* **3.2.29**（2026-11-02）：修复开机后液态玻璃不生效；修复安装器「推荐应用」按钮无法屏蔽。
+* **3.2.27**（2026-11-02）：锁屏小组件透明度默认值 60% → 100%（恢复系统原样）。
+* **3.2.26**（2026-11-02）：修复安装器「用过该应用的还喜欢」按钮无法屏蔽；修复「允许降级安装」系统层校验不生效；滑条改为 1% 精细调节。
+* **3.2.7**（2026-11-01）：修复截图开关误报「作用域未生效」；补充截图功能的依赖说明。
+* **3.2.6**（2026-11-01）：修复「清理云端配置残留」误报「系统作用域失效」；修正各功能的 ROOT 依赖说明。
+* **3.2.5**（2026-11-01）：新增安全组件：允许截屏/录屏、屏蔽云控下发、屏蔽反诈采集上报；修复反诈屏蔽、截图屏蔽从未生效；修复云控 12 个读取方法漏拦；修复 4 个参数被重复计算；新增「恢复官方原始参数」与参数烧录。
 * **2.3.10**（2026-11-01）：新增**作用域自检**——每个被 hook 的进程启动时向模块自证一次（无需 ROOT，LSPosed / Vector 通用），首页顶部显示「模块已生效 / 未生效」与已加载的作用域；各开关下方只在作用域未生效时点名具体作用域，生效后自动隐藏；打开开关时若依赖的作用域没生效会立刻提醒。「重启作用域」改为**可多选批量重启**（系统界面 / 相册 / 安装器 / 桌面 / 桌面模式 / 温控服务）。关于页新增**诊断日志**（环境快照、钩子挂载点、开关状态、异常堆栈，重复日志压缩为 `*N`，开启即时生效）、**检查更新**（GitHub 最新版本，超时/失败给出具体原因，有新版直接打开下载）与**特别鸣谢**名单。
 
-> 版本号规则（2026-11-01 起）：**新功能进位到 2.x**（如 2.1 → 2.2），**修复用 2.x.xx**（第三段为该项功能的迭代次数）。
+> 版本号规则（2026-11-01 起）：**新功能进位到 3.x**（如 3.1 → 3.2），**修复/改进用 3.x.xx**（第三段为该项功能的迭代次数）。
 
 * **2.2.9**（2026-10-31）：「屏蔽高温限制（ROOT）」默认值改为**关闭**——ROOT 级安全功能需用户显式开启（开启前二次确认）；已开启的安装不受影响，状态保留。
 * **2.2.8**（2026-11-01）：新增**高温不降级**——「系统综合 → 屏蔽高温限制（ROOT）」一个开关解除系统高温限制：不再弹「建议暂停使用」提示、不限制屏幕亮度、系统热状态按正常上报、压制 PowerGenie 温控（游戏限帧/后台清理）、高温自动关机不再触发；开关格内实时显示系统层状态与属性值。需 ROOT 写入系统属性（未授权时仅弹窗屏蔽生效）。**内核调度与降频不受本开关影响。**
